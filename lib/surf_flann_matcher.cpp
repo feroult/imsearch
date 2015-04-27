@@ -79,7 +79,7 @@ int main( int argc, char** argv )
 
   if( (good_matches.size() >=7))
   {
-     cout << "OBJECT FOUND!" << endl;
+     printf("object found! good matches : %lu\n", good_matches.size());
   }
 
   //-- Draw only "good" matches
