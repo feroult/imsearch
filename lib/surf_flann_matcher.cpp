@@ -76,6 +76,12 @@ int main( int argc, char** argv )
     { good_matches.push_back( matches[i]); }
   }
 
+
+  if( (good_matches.size() >=7))
+  {
+     cout << "OBJECT FOUND!" << endl;
+  }
+
   //-- Draw only "good" matches
   Mat img_matches;
   drawMatches( img_1, keypoints_1, img_2, keypoints_2,
