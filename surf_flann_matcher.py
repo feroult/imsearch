@@ -41,6 +41,8 @@ def drawMatches(img1, kp1, img2, kp2, matches):
     # For each pair of points we have between both images
     # draw circles, then connect a line between them
     for mat in matches:
+    	if type(mat) is list:
+    		mat = mat[0]
 
         # Get the matching keypoints for each of the images
         img1_idx = mat.queryIdx
@@ -109,8 +111,6 @@ def simpleMatcher(img1, img2, kp1, kp2, des1, des2):
 	# Matches and sort them in the order of their distance.
 	matches = bf.match(des1,des2)
 	drawMatches(img1, kp1, img2, kp2, matches)
-
-
 
 
 # Get args
