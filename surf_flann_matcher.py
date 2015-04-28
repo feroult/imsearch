@@ -17,6 +17,7 @@ ap.add_argument("-t", "--template", required=True, help="Path to the input image
 ap.add_argument("-q", "--query", required=True, help="Path to the input image")
 ap.add_argument("-he", "--hessian", help="Sorting method", default=400, type=float)
 ap.add_argument("-o", "--output", help="Sorting method", default="data/out.jpg")
+ap.add_argument("-m", "--matcher", help="Matcher", default="simple")
 args = vars(ap.parse_args())
 
 
@@ -68,7 +69,7 @@ def drawMatches(img1, kp1, img2, kp2, matches):
 
 
 
-def flaanMatcher():
+def flaanMatcher(img1, img2, kp1, kp2, des1, des2):
 	# FLANN parameters
 	FLANN_INDEX_KDTREE = 0
 	index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
@@ -85,15 +86,17 @@ def flaanMatcher():
 
 	# ratio test as per Lowe's paper
 	for i,(m,n) in enumerate(matches):
-	    if m.distance < 0.7*n.distance:
-	        matchesMask[i]=[1,0]
+		if m.distance < 0.7 * n.distance:
+			print "Discarting matching: %s %s" % (m.distance, (0.7 * n.distance))
+			matchesMask[i] = [1,0]
 
+	'''
 	draw_params = dict(matchColor = (0,255,0),
 	                   singlePointColor = (255,0,0),
 	                   matchesMask = matchesMask,
 	                   flags = 0)
-
-	img3 = drawMatches(img1,kp1,img2,kp2,matches,None,**draw_params)
+	'''
+	drawMatches(img1, kp1, img2, kp2, matches)
 
 
 
@@ -105,20 +108,6 @@ def simpleMatcher(img1, img2, kp1, kp2, des1, des2):
 
 	# Matches and sort them in the order of their distance.
 	matches = bf.match(des1,des2)
-	matches = sorted(matches, key = lambda x:x.distance)
-
-	max_dist = 0
-	min_dist = 100
-
-	for x in xrange(0, des1.itemsize):
-		dist = matches[x].distance
-
-		if dist < min_dist:
-			min_dist = dist
-
-    	if dist > max_dist:
-    		max_dist = dist
-
 	drawMatches(img1, kp1, img2, kp2, matches)
 
 
@@ -142,5 +131,21 @@ surf.hessianThreshold = hessian
 kp1, des1 = surf.detectAndCompute(imgTemplate,None)
 kp2, des2 = surf.detectAndCompute(imgQuery,None)
 
-# Using simple matcher
-simpleMatcher(imgTemplate, imgQuery, kp1, kp2, des1, des2)
+
+argMatcher = args['matcher']
+
+if 'simple' == argMatcher:
+	# Using simple matcher
+	print 'Matcher: ' + argMatcher
+	simpleMatcher(imgTemplate, imgQuery, kp1, kp2, des1, des2)
+
+elif 'flann' == argMatcher:
+	# Using flann matcher
+	print 'Matcher: ' + argMatcher
+	flaanMatcher(imgTemplate, imgQuery, kp1, kp2, des1, des2)
+
+else:
+	print 'Unknown matcher: ' + argMatcher
+
+print 'Done !!!'
+print ''
