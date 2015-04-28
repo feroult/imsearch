@@ -59,7 +59,6 @@ int main( int argc, char** argv )
 
   std::vector< DMatch > good_matches;
 
-
   for (int i = 0; i < keypoints_1.size(); ++i)
   {
       if (matches[i].size() < 2)
@@ -112,7 +111,6 @@ int main( int argc, char** argv )
                vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
 
   //-- Show detected matches
-  //namedWindow("Good Matches", WINDOW_NORMAL);
   imshow( "Good Matches", img_matches );
 
   for( int i = 0; i < (int)good_matches.size(); i++ )

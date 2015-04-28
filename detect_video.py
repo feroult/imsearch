@@ -18,8 +18,8 @@ ap.add_argument("-q", "--query", required=True, help="Path to the input image")
 ap.add_argument("-he", "--hessian", help="Sorting method", default=400, type=float)
 ap.add_argument("-o", "--output", help="Sorting method", default="data/out.jpg")
 ap.add_argument("-m", "--matcher", help="Matcher", default="simple")
+ap.add_argument("-v", "--video", help = "path to the (optional) video file")
 args = vars(ap.parse_args())
-
 
 
 def drawMatches(img1, kp1, img2, kp2, matches):
@@ -67,7 +67,10 @@ def drawMatches(img1, kp1, img2, kp2, matches):
 
 
     # Show the image
-    cv2.imwrite(args['output'], out)
+    #cv2.imwrite(args['output'], out)
+    if len(matches) > 30:
+        cv2.putText(out, "matcher: %s" % len(matches), (100,100), cv2.FONT_HERSHEY_SIMPLEX, 2, 255)
+    cv2.imshow('matcher', out)
 
 
 
@@ -90,34 +93,10 @@ def flaanMatcher(img1, img2, kp1, kp2, des1, des2):
 
     # ratio test as per Lowe's paper
     for i,(m,n) in enumerate(matches):
-        if m.distance < 0.6 * n.distance:
+        if m.distance < 0.8 * n.distance:
             good_matches.append(m)
-            
-        # if m.distance >= 0.6 * n.distance:
-        #     print "Discarting matching: %s %s" % (m.distance, (0.6 * n.distance))
-        #     matchesMask[i] = [1,0]
 
-
-    # for (int i = 0; i < keypoints_1.size(); ++i)
-    # {
-    #   if (matches[i].size() < 2)
-    #       continue;
-    #
-    #   const DMatch &m1 = matches[i][0];
-    #   const DMatch &m2 = matches[i][1];
-    #
-    #   if (m1.distance <= 0.6 * m2.distance)
-    #       good_matches.push_back(m1);
-    # }
-
-    '''
-    draw_params = dict(matchColor = (0,255,0),
-                       singlePointColor = (255,0,0),
-                       matchesMask = matchesMask,
-                       flags = 0)
-    '''
     drawMatches(img1, kp1, img2, kp2, good_matches)
-
 
 
 
@@ -131,39 +110,66 @@ def simpleMatcher(img1, img2, kp1, kp2, des1, des2):
     drawMatches(img1, kp1, img2, kp2, matches)
 
 
+
 # Get args
 templatePath = args['template']
 queryPath = args['query']
 hessian = float(args['hessian'])
 
-# Load images
-imgTemplate = cv2.imread(templatePath, 0)
-imgQuery = cv2.imread(queryPath, 0)
+def execute_matcher(imgQuery):
+    # Load images
+    imgTemplate = cv2.imread(templatePath, 0)
 
-# Create SURF
-surf = cv2.SURF(hessian)
-surf.upright = True
-surf.hessianThreshold = hessian
+    # Create SURF
+    surf = cv2.SURF(hessian)
+    surf.upright = True
+    surf.hessianThreshold = hessian
 
-# Detect
-kp1, des1 = surf.detectAndCompute(imgTemplate,None)
-kp2, des2 = surf.detectAndCompute(imgQuery,None)
+    # Detect
+    kp1, des1 = surf.detectAndCompute(imgTemplate,None)
+    kp2, des2 = surf.detectAndCompute(imgQuery,None)
+
+    argMatcher = args['matcher']
+
+    if 'simple' == argMatcher:
+        # Using simple matcher
+        print 'Matcher: ' + argMatcher
+        simpleMatcher(imgTemplate, imgQuery, kp1, kp2, des1, des2)
+
+    elif 'flann' == argMatcher:
+        # Using flann matcher
+        print 'Matcher: ' + argMatcher
+        flaanMatcher(imgTemplate, imgQuery, kp1, kp2, des1, des2)
+
+    else:
+        print 'Unknown matcher: ' + argMatcher
 
 
-argMatcher = args['matcher']
+# if a video path was not supplied, grab the reference
+# to the gray
+if args.get("video", False):
+    camera = cv2.VideoCapture(0)
 
-if 'simple' == argMatcher:
-    # Using simple matcher
-    print 'Matcher: ' + argMatcher
-    simpleMatcher(imgTemplate, imgQuery, kp1, kp2, des1, des2)
+    while True:
+        (grabbed, frame) = camera.read()
 
-elif 'flann' == argMatcher:
-    # Using flann matcher
-    print 'Matcher: ' + argMatcher
-    flaanMatcher(imgTemplate, imgQuery, kp1, kp2, des1, des2)
+        #frame = imutils.resize(frame, width = 400)
+        converted = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        execute_matcher(converted)
+        #cv2.imshow('matcher', converted)
+
+        # if the 'q' key is pressed, stop the loop
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    camera.release()
+    cv2.destroyAllWindows()
 
 else:
-    print 'Unknown matcher: ' + argMatcher
+    imgQuery = cv2.imread(queryPath, 0)
+    execute_matcher(imgQuery)
+    cv2.waitKey(0)
 
 print 'Done !!!'
 print ''
