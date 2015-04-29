@@ -68,8 +68,8 @@ def drawMatches(img1, kp1, img2, kp2, matches):
 
     # Show the image
     #cv2.imwrite(args['output'], out)
-    if len(matches) > 30:
-        cv2.putText(out, "matcher: %s" % len(matches), (100,100), cv2.FONT_HERSHEY_SIMPLEX, 2, 255)
+    if len(matches) > 27:
+        cv2.putText(out, "matcher: %s" % len(matches), (100,100), cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 255, 0))
     cv2.imshow('matcher', out)
 
 
@@ -150,7 +150,11 @@ def execute_matcher(imgQuery):
 if args.get("video", False):
     camera = cv2.VideoCapture(0)
 
+    #print "fps: %s" % camera.get(cv2.cv.CV_CAP_PROP_FPS)
+    camera.set(cv2.cv.CV_CAP_PROP_FPS, 30)
+
     while True:
+
         (grabbed, frame) = camera.read()
 
         #frame = imutils.resize(frame, width = 400)
