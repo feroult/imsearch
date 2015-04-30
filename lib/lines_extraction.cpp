@@ -81,6 +81,9 @@ int main( int argc, char** argv )
     return -1;
   }
 
+  /* blur */
+  medianBlur( imageMat, imageMat, 5 );
+
   /* create a random binary mask */
   cv::Mat mask = Mat::ones( imageMat.size(), CV_8UC1 );
 
