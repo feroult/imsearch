@@ -15,6 +15,7 @@ RNG rng(12345);
 
 double ANGLE_THRESHOLD = 1.8;
 
+
 static const char* keys =
 { "{@image_path | | Image path }" };
 
@@ -55,31 +56,38 @@ double Angle(int x0, int y0, int x1, int y1){
 
 }
 
-void fullLine(Mat img, Point a, Point b, Scalar color){
+bool isValidLine(KeyLine kl)
+{
+    double angle = Angle(kl.startPointX, kl.startPointY, kl.endPointX, kl.endPointY);
+    return angle != -1;
+}
 
-    double angle = Angle(a.x, a.y, b.x, b.y);
+KeyLine fullKeyLine(Mat image, KeyLine kl)
+{
 
-    if(angle == -1)
-    {
-        return;
-    }
+    KeyLine fullKl;
+
+    double angle = Angle(kl.startPointX, kl.startPointY, kl.endPointX, kl.endPointY);
+
+    fullKl.startPointX = kl.startPointX;
+    fullKl.startPointY = kl.startPointY;
+    fullKl.endPointX = kl.endPointX;
+    fullKl.endPointY = kl.endPointY;
 
     if(angle == 0)
     {
-        a.x = 2;
-        b.x = img.cols - 2;
-        b.y = a.y;
+        fullKl.startPointX = 2;
+        fullKl.endPointX = image.cols - 2;
+        fullKl.endPointY = fullKl.startPointY;
     }
     else
     {
-        a.y = 2;
-        b.y = img.rows - 2;
-        b.x = a.x;
+        fullKl.startPointY = 2;
+        fullKl.endPointY = image.rows - 2;
+        fullKl.endPointX = fullKl.startPointX;
     }
 
-    printf("angle: %f, a(%i, %i), b(%i, %i)\n", angle, a.x, a.y, b.x, b.y);
-
-    line(img, a, b, color, 1);
+    return fullKl;
 }
 
 void detectEdges(Mat &src, Mat &dst)
@@ -107,19 +115,17 @@ void detectLines(Mat &src, Mat &dst) {
         KeyLine kl = lines[i];
         if( kl.octave == 0)
         {
-        /* get a random color */
-        int R = ( rand() % (int) ( 255 + 1 ) );
-        int G = ( rand() % (int) ( 255 + 1 ) );
-        int B = ( rand() % (int) ( 255 + 1 ) );
+            if(!isValidLine(kl))
+            {
+                continue;
+            }
 
-        /* get extremes of line */
-        Point pt1 = Point2f( kl.startPointX, kl.startPointY );
-        Point pt2 = Point2f( kl.endPointX, kl.endPointY );
+            KeyLine fullKl = fullKeyLine(src, kl);
 
-        /* draw line */
-        //line( output, pt1, pt2, Scalar( R, G, B ), 2 );
-        //fullLine( output, pt1, pt2, Scalar( R, G, B ));
-        fullLine( dst, pt1, pt2, Scalar( 255, 255, 255 ));
+            Point pt1 = Point2f( fullKl.startPointX, fullKl.startPointY );
+            Point pt2 = Point2f( fullKl.endPointX, fullKl.endPointY );
+
+            line( dst, pt1, pt2, Scalar( 255, 255, 255 ), 1 );
         }
     }
 }
@@ -184,6 +190,6 @@ int main( int argc, char** argv )
     detectRects(image_lines, image_rects);
 
     /* show lines on image */
-    imshow( "Lines", image_rects );
+    imshow( "Lines", image_lines );
     waitKey();
 }
