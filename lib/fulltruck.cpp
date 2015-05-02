@@ -73,6 +73,7 @@ KeyLine fullKeyLine(Mat image, KeyLine kl)
     fullKl.startPointY = kl.startPointY;
     fullKl.endPointX = kl.endPointX;
     fullKl.endPointY = kl.endPointY;
+    fullKl.angle = angle;
 
     if(angle == 0)
     {
@@ -90,18 +91,19 @@ KeyLine fullKeyLine(Mat image, KeyLine kl)
     return fullKl;
 }
 
-void detectEdges(Mat &src, Mat &dst)
+void prepareImage(Mat &src, Mat &dst)
 {
-    medianBlur( src, dst, 5 );
+    src.copyTo(dst);
     cvtColor( dst, dst, CV_BGR2GRAY );
     GaussianBlur(dst, dst, Size(3, 3), 0);
-    Canny( dst, dst, 30, 150 );
 }
 
-void detectLines(Mat &src, Mat &dst) {
+vector<KeyLine> detectLines(Mat &src, Mat &dst) {
     Mat mask = Mat::ones( src.size(), CV_8UC1 );
     Ptr<BinaryDescriptor> bd = BinaryDescriptor::createBinaryDescriptor();
     vector<KeyLine> lines;
+
+    vector<KeyLine> fullLines;
 
     bd->detect( src, lines, mask );
 
@@ -126,8 +128,12 @@ void detectLines(Mat &src, Mat &dst) {
             Point pt2 = Point2f( fullKl.endPointX, fullKl.endPointY );
 
             line( dst, pt1, pt2, Scalar( 255, 255, 255 ), 1 );
+
+            fullLines.push_back(fullKl);
         }
     }
+
+    return fullLines;
 }
 
 void detectRects(Mat &_src, Mat &dst)
@@ -179,17 +185,19 @@ int main( int argc, char** argv )
     }
 
     /* change image */
-    Mat image_edges = Mat::zeros( image.size(), CV_8UC1 );
-    detectEdges(image, image_edges);
+    Mat image_copy = Mat::zeros( image.size(), CV_8UC1 );
+    prepareImage(image, image_copy);
 
-    Mat image_lines = Mat::zeros( image.size(), CV_8UC1 );
-    detectLines(image_edges, image_lines);
+    //Mat image_lines = Mat::zeros( image.size(), CV_8UC1 );
+    Mat image_lines = image.clone();
+    vector<KeyLine> lines = detectLines(image_copy, image_lines);
+    printf("lines: %lu\n", lines.size());
 
     //Mat image_rects = Mat::zeros( image.size(), CV_8UC1 );
     Mat image_rects = image.clone();
     detectRects(image_lines, image_rects);
 
     /* show lines on image */
-    imshow( "Lines", image_rects );
+    imshow( "Lines", image_lines );
     waitKey();
 }
