@@ -151,7 +151,7 @@ if args.get("video", False):
     camera = cv2.VideoCapture(0)
 
     #print "fps: %s" % camera.get(cv2.cv.CV_CAP_PROP_FPS)
-    camera.set(cv2.cv.CV_CAP_PROP_FPS, 30)
+    #camera.set(cv2.cv.CV_CAP_PROP_FPS, 30)
 
     while True:
 

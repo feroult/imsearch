@@ -1,4 +1,4 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
+/*///////////////////////////////////////////////////////////////////////////////////////
  //
  //  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
  //
@@ -52,6 +52,10 @@ using namespace cv;
 using namespace cv::line_descriptor;
 using namespace std;
 
+RNG rng(12345);
+
+double ANGLE_THRESHOLD = 1.8;
+
 static const char* keys =
 { "{@image_path | | Image path }" };
 
@@ -59,6 +63,101 @@ static void help()
 {
   cout << "\nThis example shows the functionalities of lines extraction " << "furnished by BinaryDescriptor class\n"
        << "Please, run this sample using a command in the form\n" << "./example_line_descriptor_lines_extraction <path_to_input_image>" << endl;
+}
+
+void countors(Mat threshold_output)
+{
+  vector<vector<Point> > contours;
+  vector<Vec4i> hierarchy;
+
+  /// Find contours
+  findContours( threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+  /// Approximate contours to polygons + get bounding rects and circles
+  vector<vector<Point> > contours_poly( contours.size() );
+  vector<Rect> boundRect( contours.size() );
+  vector<Point2f>center( contours.size() );
+  vector<float>radius( contours.size() );
+
+  for( int i = 0; i < contours.size(); i++ )
+     { approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+       boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+       minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
+     }
+
+
+  /// Draw polygonal contour + bonding rects + circles
+  Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
+  for( int i = 0; i< contours.size(); i++ )
+     {
+       Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+       //drawContours( drawing, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
+       rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 1, 8, 0 );
+       //circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
+     }
+
+  /// Show in a window
+  namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
+  imshow( "Contours", drawing );
+}
+
+double Angle(int x0, int y0, int x1, int y1){
+    double angle = abs(atan2(y1 - y0, x1 - x0) * 180.0 / CV_PI);
+
+    if(angle < ANGLE_THRESHOLD)
+    {
+        return 0;
+    }
+
+    if(abs(angle - 90) < ANGLE_THRESHOLD)
+    {
+        return 90;
+    }
+
+    if(abs(angle - 180) < ANGLE_THRESHOLD)
+    {
+        return 0;
+    }
+
+    if(abs(angle - 270) < ANGLE_THRESHOLD)
+    {
+        return 90;
+    }
+
+    if(abs(angle - 360) < ANGLE_THRESHOLD)
+    {
+        return 0;
+    }
+
+    return -1;
+
+}
+
+void fullLine(Mat img, Point a, Point b, Scalar color){
+
+    double angle = Angle(a.x, a.y, b.x, b.y);
+
+    if(angle == -1)
+    {
+        return;
+    }
+
+    if(angle == 0)
+    {
+        a.x = 2;
+        b.x = img.cols - 2;
+        b.y = a.y;
+    }
+    else
+    {
+        a.y = 2;
+        b.y = img.rows - 2;
+        b.x = a.x;
+    }
+
+    printf("angle: %f, a(%i, %i), b(%i, %i)\n", angle, a.x, a.y, b.x, b.y);
+
+    line(img, a, b, color, 1);
 }
 
 int main( int argc, char** argv )
@@ -81,11 +180,25 @@ int main( int argc, char** argv )
     return -1;
   }
 
-  /* blur */
-  medianBlur( imageMat, imageMat, 5 );
+  /* change image */
+  cv::Mat copy = imageMat.clone();
+  medianBlur( copy, copy, 5 );
+
+  //Canny( copy, copy, 30, 150, 5 );
+
+  //medianBlur( imageMat, imageMat, 5 );
+  //copy.convertTo(copy, -1, 2.2, 50);
+  cvtColor( copy, copy, CV_BGR2GRAY );
+  GaussianBlur(copy, copy, Size(3, 3), 0);
+  Canny( copy, copy, 30, 150 );
+
+  //cvtColor( copy, copy, CV_BGR2GRAY );
+  //threshold( copy, copy, 200, 255, THRESH_BINARY );
+  //threshold( imageMat, imageMat, 100, 255, THRESH_BINARY );
+  //imageMat.convertTo(imageMat, -1, 2.2, 50);
 
   /* create a random binary mask */
-  cv::Mat mask = Mat::ones( imageMat.size(), CV_8UC1 );
+  cv::Mat mask = Mat::ones( copy.size(), CV_8UC1 );
 
   /* create a pointer to a BinaryDescriptor object with deafult parameters */
   Ptr<BinaryDescriptor> bd = BinaryDescriptor::createBinaryDescriptor();
@@ -94,8 +207,12 @@ int main( int argc, char** argv )
   vector<KeyLine> lines;
 
   /* extract lines */
-  cv::Mat output = imageMat.clone();
-  bd->detect( imageMat, lines, mask );
+  bd->detect( copy, lines, mask );
+
+
+  //cv::Mat output = imageMat.clone();
+  cv::Mat output = Mat::zeros( imageMat.size(), CV_8UC1 );
+
 
   /* draw lines extracted from octave 0 */
   if( output.channels() == 1 )
@@ -115,12 +232,51 @@ int main( int argc, char** argv )
       Point pt2 = Point2f( kl.endPointX, kl.endPointY );
 
       /* draw line */
-      line( output, pt1, pt2, Scalar( B, G, R ), 3 );
+      //line( output, pt1, pt2, Scalar( R, G, B ), 2 );
+      //fullLine( output, pt1, pt2, Scalar( R, G, B ));
+      fullLine( output, pt1, pt2, Scalar( 255, 255, 255 ));
     }
 
   }
 
+  //threshold( src_gray, dst, threshold_value, max_BINARY_value,threshold_type );
+  cvtColor( output, output, CV_BGR2GRAY );
+
+  //threshold( output, output, 254, 255, THRESH_BINARY );
+
+  //countors(output);
+  //cvtColor(output, output, CV_RGB2GRAY);
+
+  std::vector<std::vector<Point> > contours;
+  vector<Vec4i> hierarchy;
+
+
+  //findContours( output, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
+  //findContours( output, contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE );
+  findContours( output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+
+  printf("size: %lu\n", contours.size());
+
+  vector<vector<Point> > contours_poly( contours.size() );
+  vector<Rect> boundRect( contours.size() );
+  for( int i = 0; i < contours.size(); i++ )
+      {
+        if ( hierarchy[i][3] != -1 ) {
+        approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+        boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+    }
+      }
+
+  //cv::Mat drawing = Mat::zeros( imageMat.size(), CV_8UC1 );
+  cv::Mat drawing = imageMat.clone();
+  for( int i = 0; i< contours.size(); i++ )
+     {
+       Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+       rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 1, 8, 0 );
+     }
+
   /* show lines on image */
-  imshow( "Lines", output );
+  imshow( "Lines", drawing );
   waitKey();
 }
