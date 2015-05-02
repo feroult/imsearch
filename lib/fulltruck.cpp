@@ -190,6 +190,6 @@ int main( int argc, char** argv )
     detectRects(image_lines, image_rects);
 
     /* show lines on image */
-    imshow( "Lines", image_lines );
+    imshow( "Lines", image_rects );
     waitKey();
 }
