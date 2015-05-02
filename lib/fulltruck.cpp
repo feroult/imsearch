@@ -85,9 +85,9 @@ void fullLine(Mat img, Point a, Point b, Scalar color){
 void detectEdges(Mat &src, Mat &dst)
 {
     medianBlur( src, dst, 5 );
-    cvtColor( src, dst, CV_BGR2GRAY );
-    GaussianBlur(src, dst, Size(3, 3), 0);
-    Canny( src, dst, 30, 150 );
+    cvtColor( dst, dst, CV_BGR2GRAY );
+    GaussianBlur(dst, dst, Size(3, 3), 0);
+    Canny( dst, dst, 30, 150 );
 }
 
 void detectLines(Mat &src, Mat &dst) {
@@ -165,26 +165,25 @@ int main( int argc, char** argv )
     }
 
     /* load image */
-    Mat imageMat = imread( image_path, 1 );
-    if( imageMat.data == NULL )
+    Mat image = imread( image_path, 1 );
+    if( image.data == NULL )
     {
         std::cout << "Error, image could not be loaded. Please, check its path" << std::endl;
         return -1;
     }
 
     /* change image */
-    Mat copy = imageMat.clone();
-    detectEdges(copy, copy);
+    Mat image_edges = Mat::zeros( image.size(), CV_8UC1 );
+    detectEdges(image, image_edges);
 
-    //Mat output = imageMat.clone();
-    Mat output = Mat::zeros( imageMat.size(), CV_8UC1 );
-    detectLines(copy, output);
+    Mat image_lines = Mat::zeros( image.size(), CV_8UC1 );
+    detectLines(image_edges, image_lines);
 
-    //Mat drawing = Mat::zeros( imageMat.size(), CV_8UC1 );
-    Mat drawing = imageMat.clone();
-    detectRects(output, drawing);
+    //Mat image_rects = Mat::zeros( image.size(), CV_8UC1 );
+    Mat image_rects = image.clone();
+    detectRects(image_lines, image_rects);
 
     /* show lines on image */
-    imshow( "Lines", drawing );
+    imshow( "Lines", image_rects );
     waitKey();
 }
