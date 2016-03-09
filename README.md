@@ -9,5 +9,6 @@ g++ `pkg-config --cflags --libs opencv` surf_flann_matcher.cpp -o surf_flann_mat
 ## Links
 
 * INSTALL OSX: http://www.pyimagesearch.com/2015/06/15/install-opencv-3-0-and-python-2-7-on-osx/
+  *  make/install ffmpeg: http://ffmpeg.org/releases/ffmpeg-3.0.tar.xz
 * http://answers.opencv.org/question/10459/surf-matching-against-a-database-of-images/
 * http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_feature2d/py_matcher/py_matcher.html
