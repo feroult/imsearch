@@ -16,7 +16,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-t", "--template", required=True, help="Path to the input image")
 ap.add_argument("-q", "--query", required=True, help="Path to the input image")
 ap.add_argument("-he", "--hessian", help="Sorting method", default=400, type=float)
-ap.add_argument("-o", "--output", help="Sorting method", default="data/out.jpg")
+ap.add_argument("-o", "--output", help="Sorting method", default="work/out.jpg")
 ap.add_argument("-m", "--matcher", help="Matcher", default="simple")
 args = vars(ap.parse_args())
 
