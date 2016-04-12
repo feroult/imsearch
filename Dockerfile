@@ -1,14 +1,6 @@
-#
-# Docker file for image fradelg/opencv3
-#
-# To build:
-# docker build -t fradelg/opencv3 .
-#
 # To run a container based on the image, allowing GUI access (unsecured way):
 # xhost +
-# docker run --rm -ti -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY fradelg/opencv3
-#
-# For a secure access method use the install.sh script
+# docker run --rm -ti -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY opencv3
 
 FROM ubuntu:14.04
 MAINTAINER Francisco Javier Delgado del Hoyo "frandelhoyo@gmail.com"
