@@ -121,9 +121,9 @@ def execute_matcher(imgQuery):
     imgTemplate = cv2.imread(templatePath, 0)
 
     # Create SURF
-    surf = cv2.SURF(hessian)
-    surf.upright = True
-    surf.hessianThreshold = hessian
+    surf = cv2.xfeatures2d.SURF_create(hessian)
+    surf.setUpright(True)
+    surf.setHessianThreshold(hessian)
 
     # Detect
     kp1, des1 = surf.detectAndCompute(imgTemplate,None)

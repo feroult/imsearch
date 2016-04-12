@@ -141,7 +141,6 @@ imgTemplate = cv2.imread(templatePath, 0)
 imgQuery = cv2.imread(queryPath, 0)
 
 # Create SURF
-# surf = cv2.SURF(hessian)
 surf = cv2.xfeatures2d.SURF_create(hessian)
 surf.setUpright(True)
 surf.setHessianThreshold(hessian)
