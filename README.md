@@ -6,6 +6,7 @@
 
 Build the OpenCV Docker Image:
 
+    git clone https://github.com/feroult/imsearch.git
     docker build -t opencv3 .
 
 #### For Linux Hosts
