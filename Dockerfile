@@ -21,7 +21,7 @@ RUN apt-get -y install libatlas-base-dev gfortran
 RUN apt-get -y install python2.7-dev
 RUN apt-get -y install wget
 
-# PIP & Numpy
+# PIP 
 WORKDIR /usr/local/src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python get-pip.py
