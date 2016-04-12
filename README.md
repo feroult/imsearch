@@ -1,4 +1,4 @@
-# Image Search Samples
+# Image Search: Computer Vision QuickStart
 
 ## Installing
 
