@@ -5,4 +5,4 @@ FILENAME=$(basename $FILE)
 NAME="${FILENAME%.*}"
 EXTENSION="${FILENAME##*.}"
 
-g++ `pkg-config --cflags --libs opencv` $FILE -o bin/$NAME
+g++ $FILE -o bin/$NAME `pkg-config --cflags --libs opencv`
