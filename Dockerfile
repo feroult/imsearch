@@ -50,6 +50,7 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
 
 RUN make -j2
 RUN make install
+RUN ldconfig
 
 # Default command
 CMD ["bash"]

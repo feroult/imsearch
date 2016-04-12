@@ -11,13 +11,13 @@ g++ `pkg-config --cflags --libs opencv` surf_flann_matcher.cpp -o surf_flann_mat
 
 ### Linux
 
-    docker run --rm -ti -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY opencv3
+    docker run --rm -ti -v /tmp/.X11-unix:/tmp/.X11-unix -v $(pwd):/imsearch -e DISPLAY=$DISPLAY opencv3
 
 ### OSX
 
     brew install socat
     socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"
-    docker run --rm -ti -v -e DISPLAY={HOST_IP}:0 opencv3
+    docker run --rm -ti -v $(pwd):/imsearch -e DISPLAY={HOST_IP}:0 opencv3
 
 ## Links
 
