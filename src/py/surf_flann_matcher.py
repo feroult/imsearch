@@ -92,7 +92,7 @@ def flaanMatcher(img1, img2, kp1, kp2, des1, des2):
     for i,(m,n) in enumerate(matches):
         if m.distance < 0.6 * n.distance:
             good_matches.append(m)
-            
+
         # if m.distance >= 0.6 * n.distance:
         #     print "Discarting matching: %s %s" % (m.distance, (0.6 * n.distance))
         #     matchesMask[i] = [1,0]
@@ -141,9 +141,10 @@ imgTemplate = cv2.imread(templatePath, 0)
 imgQuery = cv2.imread(queryPath, 0)
 
 # Create SURF
-surf = cv2.SURF(hessian)
-surf.upright = True
-surf.hessianThreshold = hessian
+# surf = cv2.SURF(hessian)
+surf = cv2.xfeatures2d.SURF_create(hessian)
+surf.setUpright(True)
+surf.setHessianThreshold(hessian)
 
 # Detect
 kp1, des1 = surf.detectAndCompute(imgTemplate,None)
