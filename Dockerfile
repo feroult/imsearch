@@ -3,7 +3,6 @@
 # docker run --rm -ti -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY opencv3
 
 FROM ubuntu:14.04
-MAINTAINER Francisco Javier Delgado del Hoyo "frandelhoyo@gmail.com"
 
 # Update packages
 ENV LAST_OS_UPDATE 2015-10-15
@@ -53,4 +52,5 @@ RUN make install
 RUN ldconfig
 
 # Default command
+WORKDIR /imsearch
 CMD ["bash"]
