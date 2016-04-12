@@ -23,9 +23,9 @@ RUN apt-get -y install wget
 
 # PIP & Numpy
 WORKDIR /usr/local/src
-wget https://bootstrap.pypa.io/get-pip.py
-python get-pip.py
-pip install numpy
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python get-pip.py
+RUN pip install numpy
 
 # Checkout OpenCV contrib
 WORKDIR /usr/local/src
