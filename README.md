@@ -17,6 +17,7 @@ Build the OpenCV Docker Image:
 
 #### For OSX Hosts
 
+    brew cask install xquartz
     brew install socat
     socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"
     docker run --rm -ti -v $(pwd):/imsearch -e DISPLAY={HOST_IP}:0 opencv3
