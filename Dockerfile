@@ -12,6 +12,9 @@ RUN apt-get -y upgrade
 # Install x11-utils to get xdpyinfo, for X11 display
 RUN apt-get -y install x11-utils mesa-utils
 
+############
+## OPENCV ##
+############
 # Install OpenCV dependencies
 RUN apt-get -y install build-essential cmake git pkg-config
 RUN apt-get -y install libjpeg8-dev libtiff4-dev libjasper-dev libpng12-dev
@@ -21,7 +24,7 @@ RUN apt-get -y install libatlas-base-dev gfortran
 RUN apt-get -y install python2.7-dev
 RUN apt-get -y install wget
 
-# PIP 
+# PIP
 WORKDIR /usr/local/src
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python get-pip.py
@@ -52,6 +55,19 @@ RUN make -j2
 RUN make install
 RUN ldconfig
 
-# Default command
+#########
+## CCV ##
+#########
+RUN apt-get -y libpng-dev libjpeg-dev libatlas-base-dev libblas-dev libgsl0-dev
+
+WORKDIR /usr/local/src
+RUN git clone --branch stable https://github.com/liuliu/ccv.git
+WORKDIR ccv/lib
+RUN ./configure && make
+
+#####################
+## Default command ##
+#####################
+
 WORKDIR /imsearch
 CMD ["bash"]
