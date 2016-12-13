@@ -189,7 +189,7 @@ int main( int argc, char** argv )
   //medianBlur( imageMat, imageMat, 5 );
   //copy.convertTo(copy, -1, 2.2, 50);
   cvtColor( copy, copy, CV_BGR2GRAY );
-  GaussianBlur(copy, copy, Size(3, 3), 0);
+  // GaussianBlur(copy, copy, Size(3, 3), 0);
   Canny( copy, copy, 30, 150 );
 
   //cvtColor( copy, copy, CV_BGR2GRAY );
