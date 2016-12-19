@@ -36,13 +36,15 @@ RUN pip install imutils
 
 # Checkout OpenCV contrib
 WORKDIR /usr/local/src
-RUN git clone --branch 3.0.0 --depth=1 https://github.com/Itseez/opencv_contrib
+# RUN git clone --branch 3.0.0 --depth=1 https://github.com/Itseez/opencv_contrib
+RUN git clone --depth=1 https://github.com/opencv/opencv_contrib.git
 WORKDIR opencv_contrib
 RUN rm -rf .git
 
 # Compile OpenCV master branch from sources
 WORKDIR /usr/local/src
-RUN git clone --branch 3.0.0 --depth=1 https://github.com/Itseez/opencv.git
+# RUN git clone --branch 3.0.0 --depth=1 https://github.com/Itseez/opencv.git
+RUN git clone --depth=1 https://github.com/opencv/opencv.git
 WORKDIR opencv
 RUN rm -rf .git
 RUN mkdir build

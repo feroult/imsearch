@@ -62,7 +62,7 @@ int main(int argc, const char * argv[])
     // nonMaxSuppression	– Whenever non-maximum suppression is done over the branch probabilities
     // minProbabilityDiff	– The minimum probability difference between local maxima and local minima ERs
 
-    Ptr<ERFilter> er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),10,0.00015f,0.13f,0.8f,false,0.1f);
+    Ptr<ERFilter> er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),10,0.00010f,0.13f,0.8f,false,0.1f);
     Ptr<ERFilter> er_filter2 = createERFilterNM2(loadClassifierNM2("trained_classifierNM2.xml"),0.5);
 
     vector<vector<ERStat> > regions(channels.size());
@@ -102,9 +102,6 @@ int main(int argc, const char * argv[])
     cout << "TIME_OCR_INITIALIZATION = " << ((double)getTickCount() - t_r)*1000/getTickFrequency() << endl;
     string output;
 
-
-    cout << "HERE 0";
-
     Mat out_img;
     Mat out_img_detection;
     Mat out_img_segmentation = Mat::zeros(src.rows+2, src.cols+2, CV_8UC1);
@@ -118,9 +115,8 @@ int main(int argc, const char * argv[])
 
     for (int i=0; i<(int)groups_boxes.size(); i++)
     {
-
-        cout << "HERE 1";
         rectangle(out_img_detection, groups_boxes[i].tl(), groups_boxes[i].br(), Scalar(0,255,255), 3);
+        cout << "BOX: " << groups_boxes[i].width << " - x: " << groups_boxes[i].x << " y: " << groups_boxes[i].y << " - src: " << src.cols << endl;
 
         Mat group_img = Mat::zeros(src.rows+2, src.cols+2, CV_8UC1);
         er_draw(channels, regions, region_groups[i], group_img);
@@ -130,26 +126,23 @@ int main(int argc, const char * argv[])
         group_img(groups_boxes[i]).copyTo(group_img);
         copyMakeBorder(group_img,group_img,15,15,15,15,BORDER_CONSTANT,Scalar(0));
 
-
         // imshow("grouping",group_img);
         // waitKey();
-
 
         vector<Rect>   boxes;
         vector<string> words;
         vector<float>  confidences;
-
-        cout << "HERE";
-
         ocr->run(group_img, output, &boxes, &words, &confidences, OCR_LEVEL_WORD);
 
         output.erase(remove(output.begin(), output.end(), '\n'), output.end());
         cout << "OCR output = \"" << output << "\" lenght = " << output.size() << endl;
-        if (output.size() < 3)
+        if (output.size() < 1)
             continue;
 
         for (int j=0; j<(int)boxes.size(); j++)
         {
+            // cout << "BOX: " << boxes[i].width << " - x: " << boxes[i].x << " y: " << boxes[i].y << " - src: " << src.cols << endl;
+
             boxes[j].x += groups_boxes[i].x-15;
             boxes[j].y += groups_boxes[i].y-15;
 
@@ -175,23 +168,23 @@ int main(int argc, const char * argv[])
 
 
 
-    // draw groups
-    groups_draw(src, groups_boxes);
-    imshow("grouping",src);
-
-    cout << "Done!" << endl << endl;
-    cout << "Press 'space' to show the extracted Extremal Regions, any other key to exit." << endl << endl;
-    if ((waitKey()&0xff) == ' ')
-        er_show(channels,regions);
-
-    // memory clean-up
-    er_filter1.release();
-    er_filter2.release();
-    regions.clear();
-    if (!groups_boxes.empty())
-    {
-        groups_boxes.clear();
-    }
+    // // draw groups
+    // groups_draw(src, groups_boxes);
+    // imshow("grouping",src);
+    //
+    // cout << "Done!" << endl << endl;
+    // cout << "Press 'space' to show the extracted Extremal Regions, any other key to exit." << endl << endl;
+    // if ((waitKey()&0xff) == ' ')
+    //     er_show(channels,regions);
+    //
+    // // memory clean-up
+    // er_filter1.release();
+    // er_filter2.release();
+    // regions.clear();
+    // if (!groups_boxes.empty())
+    // {
+    //     groups_boxes.clear();
+    // }
 }
 
 // helper functions
