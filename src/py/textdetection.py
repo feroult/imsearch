@@ -15,8 +15,8 @@ if (len(sys.argv) < 2):
   print(' (ERROR) You must call this script with an argument (path_to_image_to_be_processed)\n')
   quit()
 
-pathname = os.path.dirname(sys.argv[0])
-
+#pathname = os.path.dirname(sys.argv[0])
+pathname = '/imsearch'
 
 img      = cv2.imread(str(sys.argv[1]))
 # for visualization
@@ -36,7 +36,8 @@ print("    (...) this may take a while (...)")
 for channel in channels:
 
   erc1 = cv2.text.loadClassifierNM1(pathname+'/trained_classifierNM1.xml')
-  er1 = cv2.text.createERFilterNM1(erc1,16,0.00015,0.13,0.2,True,0.1)
+  # er1 = cv2.text.createERFilterNM1(erc1,16,0.00015,0.13,0.2,True,0.1)
+  er1 = cv2.text.createERFilterNM1(erc1,10,0.00015,0.13,0.2,True,0.1)
 
   erc2 = cv2.text.loadClassifierNM2(pathname+'/trained_classifierNM2.xml')
   er2 = cv2.text.createERFilterNM2(erc2,0.5)

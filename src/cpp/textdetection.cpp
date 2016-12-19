@@ -35,9 +35,11 @@ int main(int argc, const char * argv[])
     if (argc < 2) show_help_and_exit(argv[0]);
 
     Mat src = imread(argv[1]);
+    Mat backupSrc;
 
+    src.copyTo(backupSrc);
     // cvtColor( src, src, CV_BGR2GRAY );
-    // GaussianBlur(src, src, Size(3, 3), 0);
+    // GaussianBlur(src, src, Size(1, 1), 0);
     // Canny( src, src, 30, 150 );
 
 
@@ -62,7 +64,9 @@ int main(int argc, const char * argv[])
     // nonMaxSuppression	– Whenever non-maximum suppression is done over the branch probabilities
     // minProbabilityDiff	– The minimum probability difference between local maxima and local minima ERs
 
-    Ptr<ERFilter> er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),10,0.00010f,0.13f,0.8f,false,0.1f);
+    // Ptr<ERFilter> er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),10,0.00010f,0.13f,0.8f,false,0.1f);
+    // Ptr<ERFilter> er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),8,0.00010f,0.13f,0.8f,false,0.1f);
+    Ptr<ERFilter> er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),10,0.00015f,0.13f,0.8f,false,0.1f);
     Ptr<ERFilter> er_filter2 = createERFilterNM2(loadClassifierNM2("trained_classifierNM2.xml"),0.5);
 
     vector<vector<ERStat> > regions(channels.size());
@@ -83,6 +87,7 @@ int main(int argc, const char * argv[])
     erGrouping(src, channels, regions, region_groups, groups_boxes, ERGROUPING_ORIENTATION_HORIZ, "./trained_classifier_erGrouping.xml", 0.5);
 
     // OCR
+    backupSrc.copyTo(src);
 
     double t_r = (double)getTickCount();
     // Ptr<OCRTesseract> ocr = OCRTesseract::create();
@@ -168,23 +173,23 @@ int main(int argc, const char * argv[])
 
 
 
-    // // draw groups
-    // groups_draw(src, groups_boxes);
-    // imshow("grouping",src);
-    //
-    // cout << "Done!" << endl << endl;
-    // cout << "Press 'space' to show the extracted Extremal Regions, any other key to exit." << endl << endl;
-    // if ((waitKey()&0xff) == ' ')
-    //     er_show(channels,regions);
-    //
-    // // memory clean-up
-    // er_filter1.release();
-    // er_filter2.release();
-    // regions.clear();
-    // if (!groups_boxes.empty())
-    // {
-    //     groups_boxes.clear();
-    // }
+    // draw groups
+    groups_draw(src, groups_boxes);
+    imshow("grouping",src);
+
+    cout << "Done!" << endl << endl;
+    cout << "Press 'space' to show the extracted Extremal Regions, any other key to exit." << endl << endl;
+    if ((waitKey()&0xff) == ' ')
+        er_show(channels,regions);
+
+    // memory clean-up
+    er_filter1.release();
+    er_filter2.release();
+    regions.clear();
+    if (!groups_boxes.empty())
+    {
+        groups_boxes.clear();
+    }
 }
 
 // helper functions
