@@ -14,16 +14,34 @@ void show_help_and_exit(const char *cmd);
 void er_draw(vector<Mat> &channels, vector<vector<ERStat> > &regions, vector<Vec2i> group, Mat& segmentation);
 Ptr<OCRHMMDecoder> create_ocr();
 
-int main(int argc, const char * argv[])
+// watermark detector
+
+class WaterMarkDetector
 {
-    if (argc < 2) show_help_and_exit(argv[0]);
+    private:
+        Mat src;
+        vector<Mat> channels;
+        vector<vector<ERStat> > regions;
+        vector< vector<Vec2i> > region_groups;
+        vector<Rect> groups_boxes;
+        Ptr<ERFilter> er_filter1;
+        Ptr<ERFilter> er_filter2;
 
-    Mat src = imread(argv[1]);
+    public:
+        WaterMarkDetector(const char * filename);
+        void applyClassifier();
+        void detectGroups();
+        void computeWaterMarkProbability();
+        void release();
+};
 
-    // GaussianBlur(src, src, Size(1, 1), 0);
+WaterMarkDetector::WaterMarkDetector(const char * filename)
+{
+    src = imread(filename);
+}
 
-    // Extract channels to be processed individually
-    vector<Mat> channels;
+void WaterMarkDetector::applyClassifier()
+{
     computeNMChannels(src, channels);
 
     int cn = (int)channels.size();
@@ -31,38 +49,31 @@ int main(int argc, const char * argv[])
     for (int c = 0; c < cn-1; c++)
         channels.push_back(255-channels[c]);
 
-    Ptr<ERFilter> er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),10,0.00015f,0.13f,0.8f,false,0.1f);
-    Ptr<ERFilter> er_filter2 = createERFilterNM2(loadClassifierNM2("trained_classifierNM2.xml"),0.5);
+    er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),10,0.00015f,0.13f,0.8f,false,0.1f);
+    er_filter2 = createERFilterNM2(loadClassifierNM2("trained_classifierNM2.xml"),0.5);
 
     // Apply the default cascade classifier to each independent channel (could be done in parallel)
-    vector<vector<ERStat> > regions(channels.size());
+    regions = vector<vector<ERStat> >(channels.size());
     for (int c=0; c<(int)channels.size(); c++)
     {
         er_filter1->run(channels[c], regions[c]);
         er_filter2->run(channels[c], regions[c]);
     }
+}
 
-    // Detect character groups
-    vector< vector<Vec2i> > region_groups;
-    vector<Rect> groups_boxes;
+void WaterMarkDetector::detectGroups()
+{
     erGrouping(src, channels, regions, region_groups, groups_boxes, ERGROUPING_ORIENTATION_HORIZ, "./trained_classifier_erGrouping.xml", 0.5);
+}
 
-    // OCR
+void WaterMarkDetector::computeWaterMarkProbability()
+{
+
     Ptr<OCRHMMDecoder> ocr = create_ocr();
 
     string output;
-
-    Mat out_img;
-    Mat out_img_detection;
-    Mat out_img_segmentation = Mat::zeros(src.rows+2, src.cols+2, CV_8UC1);
-    src.copyTo(out_img);
-    src.copyTo(out_img_detection);
-    float scale_img  = 600.f/src.rows;
-    float scale_font = (float)(2-scale_img)/1.4f;
-    vector<string> words_detection;
     for (int i=0; i<(int)groups_boxes.size(); i++)
     {
-        rectangle(out_img_detection, groups_boxes[i].tl(), groups_boxes[i].br(), Scalar(0,255,255), 3);
         cout << "BOX: " << groups_boxes[i].width << " - x: " << groups_boxes[i].x << " y: " << groups_boxes[i].y << " - src: " << src.cols << endl;
 
         Mat group_img = Mat::zeros(src.rows+2, src.cols+2, CV_8UC1);
@@ -91,9 +102,10 @@ int main(int argc, const char * argv[])
         }
 
     }
+}
 
-    // OCR
-
+void WaterMarkDetector::release()
+{
     // memory clean-up
     er_filter1.release();
     er_filter2.release();
@@ -102,6 +114,19 @@ int main(int argc, const char * argv[])
     {
         groups_boxes.clear();
     }
+}
+
+// main function
+
+int main(int argc, const char * argv[])
+{
+    if (argc < 2) show_help_and_exit(argv[0]);
+
+    WaterMarkDetector wmd(argv[1]);
+    wmd.applyClassifier();
+    wmd.detectGroups();
+    wmd.computeWaterMarkProbability();
+    wmd.release();
 }
 
 // helper functions
