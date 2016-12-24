@@ -26,18 +26,24 @@ class WaterMarkDetector
         vector<Rect> groups_boxes;
         Ptr<ERFilter> er_filter1;
         Ptr<ERFilter> er_filter2;
+        double width_threshold;
+        double confidence_threshold;
+        double word_size_threshold;
 
     public:
-        WaterMarkDetector(const char * filename);
+        WaterMarkDetector(const char * argv[]);
         void applyClassifier();
         void detectGroups();
         void computeWaterMarkProbability();
         void release();
 };
 
-WaterMarkDetector::WaterMarkDetector(const char * filename)
+WaterMarkDetector::WaterMarkDetector(const char * argv[])
 {
-    src = imread(filename);
+    src = imread(argv[1]);
+    width_threshold = ::atof(argv[2]);
+    confidence_threshold = ::atof(argv[3]);
+    word_size_threshold = ::atof(argv[4]);
 }
 
 void WaterMarkDetector::applyClassifier()
@@ -74,8 +80,6 @@ void WaterMarkDetector::computeWaterMarkProbability()
     string output;
     for (int i=0; i<(int)groups_boxes.size(); i++)
     {
-        cout << "BOX: " << groups_boxes[i].width << " - x: " << groups_boxes[i].x << " y: " << groups_boxes[i].y << " - src: " << src.cols << endl;
-
         Mat group_img = Mat::zeros(src.rows+2, src.cols+2, CV_8UC1);
         er_draw(channels, regions, region_groups[i], group_img);
         Mat group_segmentation;
@@ -94,11 +98,7 @@ void WaterMarkDetector::computeWaterMarkProbability()
 
         for (int j=0; j<(int)boxes.size(); j++)
         {
-            boxes[j].x += groups_boxes[i].x-15;
-            boxes[j].y += groups_boxes[i].y-15;
-
-            cout << "box: " << boxes[j].width << endl;
-            cout << "  word = " << words[j] << "\t confidence = " << confidences[j] << endl;
+            cout << "width %: " << (groups_boxes[i].width/(float)src.cols) << ", confidence: " <<  confidences[j] << ", word size: " << words[j].size() << endl;
         }
 
     }
@@ -120,9 +120,9 @@ void WaterMarkDetector::release()
 
 int main(int argc, const char * argv[])
 {
-    if (argc < 2) show_help_and_exit(argv[0]);
+    if (argc < 5) show_help_and_exit(argv[0]);
 
-    WaterMarkDetector wmd(argv[1]);
+    WaterMarkDetector wmd(argv);
     wmd.applyClassifier();
     wmd.detectGroups();
     wmd.computeWaterMarkProbability();
@@ -133,7 +133,8 @@ int main(int argc, const char * argv[])
 
 void show_help_and_exit(const char *cmd)
 {
-    cout << "    Usage: " << cmd << " <input_image> " << endl;
+    cout << endl;
+    cout << "    Usage: " << cmd << " <input_image> <width % threshold> <confidence threshold> <word size threshold>" << endl;
     cout << "    Default classifier files (trained_classifierNM*.xml) must be in current directory" << endl << endl;
     exit(-1);
 }
