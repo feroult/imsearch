@@ -23,7 +23,6 @@ struct WordInfo {
     float  width;
     float  confidence;
     float  size;
-    float  magnitude;
     string word;
 };
 
@@ -74,8 +73,8 @@ void WaterMarkDetector::applyClassifier()
     // background)
     for (int c = 0; c < cn - 1; c++) channels.push_back(255 - channels[c]);
 
-    er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"), 10,
-                                   0.00015f, 0.13f, 0.8f, false, 0.1f);
+    er_filter1 = createERFilterNM1(loadClassifierNM1("trained_classifierNM1.xml"),
+                                   4, 0.00015f, 0.13f, 0.8f, false, 0.1f);
     er_filter2 = createERFilterNM2(loadClassifierNM2("trained_classifierNM2.xml"), 0.5);
 
     // Apply the default cascade classifier to each independent channel (could
@@ -132,7 +131,7 @@ void WaterMarkDetector::detectWords()
             WordInfo word_info;
 
             word_info.width      = (groups_boxes[i].width / (float)src.cols) * 100;
-            word_info.confidence = confidences[j] * 100;
+            word_info.confidence = confidences[j];
             word_info.size       = words[j].size();
             word_info.word       = words[j];
 
@@ -163,24 +162,11 @@ void WaterMarkDetector::computeMagnitudes()
 {
     vector<WordInfo>::iterator it;
 
-    cout << "width %: " << max_values.width
-         << ", confidence: " <<  max_values.confidence
-         << ", word size: " << max_values.size
-         << endl;
-
     for (it = detected_words.begin(); it != detected_words.end(); ++it) {
-        it->confidence = (it->confidence / max_values.confidence) * 100;
-        it->size       = (it->size / max_values.size) * 100;
-
-        // it->magnitude = sqrt(it->width * it->width + it->confidence *
-        // it->confidence + it->size * it->size);
-        it->magnitude = it->width + it->confidence + it->size;
-
-        cout << "magnitude: " << it->magnitude
-             << ", width %: " << it->width
-             << ", confidence: " <<  it->confidence
-             << ", word size: " << it->size
-             << ", word: " << it->word
+        cout << "width% " << it->width
+             << "\tconfidence: " <<  it->confidence
+             << "\tword size: " << it->size
+             << "\tword: " << it->word
              << endl;
     }
 }
@@ -219,7 +205,7 @@ void show_help_and_exit(const char *cmd)
     cout << endl;
     cout << "    Usage: " << cmd
          << " <input_image> <width % threshold> <confidence threshold> <word size threshold>"
-         <<    endl;
+         << endl;
     cout << "    Default classifier files (trained_classifierNM*.xml) must be in current directory" << endl << endl;
     exit(-1);
 }
